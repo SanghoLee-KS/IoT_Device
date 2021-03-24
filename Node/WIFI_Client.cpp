@@ -8,10 +8,13 @@
 
 //#include "arduino_secrets.h" 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = "KT_GiGA_2G_TEST";        
-//char ssid[] = "MMV2G";        
-char pass[] = "0000003151";    
+//char ssid[] = "KT_GiGA_2G_TEST";        
+//char ssid[] = "MMV2G";
+char ssid[] = "iptime_jenny";
+//char pass[] = "0000003151";    
 //char pass[] = "mmv309309";    
+char pass[] = "iamhappy";    
+
 int keyIndex = 0;            // your network key Index number (needed only for WEP)
 char incomingByte = 0;       // InputByte
 

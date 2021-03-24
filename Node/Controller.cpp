@@ -20,10 +20,16 @@ MESSAGE message;
 /*Heart Beat*/
 unsigned long Heart_prev, Heart_current;
 
+/*LED, Buzzer*/
+int ledPin = 2;
+int buzzerPin = 3;
+
 
 void setup() {
   Serial.begin(9600);
 
+  pinMode(ledPin, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
 //  while (!Serial);
 
   SensorInit();
@@ -100,6 +106,14 @@ void loop() {
       Serial.println(message.data);
   
       //ToDO : LED + BUZZER
+      digitalWrite(ledPin, HIGH); digitalWrite(buzzerPin, HIGH);
+      delay(1000);
+      digitalWrite(ledPin, LOW);  digitalWrite(buzzerPin, LOW);
+      delay(1000);
+      digitalWrite(ledPin, HIGH); digitalWrite(buzzerPin, HIGH);
+      delay(1000);
+      digitalWrite(ledPin, LOW);  digitalWrite(buzzerPin, LOW);
+      
     }
 
 
