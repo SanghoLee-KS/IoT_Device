@@ -1,32 +1,15 @@
-//client
 #include "Arduino.h"
 #include "Message.h"
 #include "WIFI_Client.h"
 #include <SPI.h>
 #include <WiFiNINA.h>
+#include "arduino_secrets.h" 
 
-
-//#include "arduino_secrets.h" 
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-//char ssid[] = "KT_GiGA_2G_TEST";        
-//char ssid[] = "MMV2G";
-char ssid[] = "iptime_jenny";
-//char pass[] = "0000003151";    
-//char pass[] = "mmv309309";    
-char pass[] = "iamhappy";    
-
-int keyIndex = 0;            // your network key Index number (needed only for WEP)
-char incomingByte = 0;       // InputByte
 
 int status = WL_IDLE_STATUS;
-IPAddress server(202,30,32,70);  
-
 WiFiClient client;
 
 void WifiInit(uint8_t* mac) {
-//  while (!Serial) {
-//    ; // wait for serial port to connect. Needed for native USB port only
-//  }
 
   // Wifi Module 통신 (SPI인듯)
   if (WiFi.status() == WL_NO_MODULE) {
@@ -55,37 +38,34 @@ void WifiInit(uint8_t* mac) {
   }
   Serial.println("Connected to wifi");
   printWifiStatus();
-
-  Serial.println("\nStarting connection to server...");
-  // 접속 성공 시 IP, PORT로 Server 접속
-  if (client.connect(server, 12344))
-    Serial.println("Connected to Server");
 }
 
-//void recvData() {
-MESSAGE recvData() {
-/*
-    while(client.available()) {
-        //명령 입력
-        char c = client.read();
-        Serial.println(c, HEX);
-        delay(1);
-    }
-  */
-  MESSAGE recMessage = {0};
-  if(client.available() >= 12){
-    char* dp = (char*) &recMessage;
+void socketConnect() {
+  int n = 0;
+  Serial.println("\nStarting connection to server...");
+  // 접속 성공 시 IP, PORT로 Server 접속
+  while( !client.connect(server, port)){
+    n++;
+    Serial.print("\nStarting connection to server...");  
+    Serial.println(n);
 
-    byte css; int cssc=1;
-    for(int i=0; i<20; i++) {
-      css = *dp++ = client.read();
-      Serial.print(cssc++);
-      Serial.print(" ");
-      Serial.write(css);
+    if(n > 3){
+      Serial.println("Failed Connecting Server");
+      while(1);
     }
-//    for(int i=0; i<20; i++) *dp++ = client.read();
   }
-  
+  Serial.println("Connected to Server");
+}
+
+//int recvData(MESSAGE message) {
+int recvData(char* message) {
+  int isRecv = 0;
+  if(client.available() >= 12){
+    isRecv = 1;
+    //char* dp = (char*) &message;
+    char* dp = message;
+    for(int i=0; i<20; i++) *dp++ = client.read();
+  }
 
   // 접속 해제 시, client종료
   if (!client.connected()) {
@@ -96,31 +76,12 @@ MESSAGE recvData() {
     // do nothing forevermore:
     while (true);
   }
-  return recMessage;
-}
-/*
-void sendToServ(byte msg[]){
-  client.write(msg, 6);
-}
-*/
-
-void sendToServ(MESSAGE message){
-/*
-    char* dp = (char*) &message;
-
-    byte css; int cssc=1;
-    for(int i=0; i<20; i++) {
-      css = *dp++;
-      Serial.print(cssc++);
-      Serial.print(" ");
-      Serial.write(css);
-    }
-*/
-    
-  client.write((char*)&message, 20);
+  return isRecv;
 }
 
-
+void sendData(MESSAGE message){
+  client.write((char*)&message, sizeof(message));
+}
 
 void printWifiStatus() {
   // print the SSID of the network you're attached to:

@@ -1,8 +1,7 @@
 void WifiInit(uint8_t* mac);
-//void recvData();
-MESSAGE recvData();
+void socketConnect() ;
+//int recvData(MESSAGE message);
+int recvData(char* message);
+void sendData(MESSAGE message);
 void printWifiStatus();
 void printMacAddress(byte mac[]);
-//void sendToServ(uint8_t* msg);
-//void sendToServ(byte msg[]);
-void sendToServ(MESSAGE message);

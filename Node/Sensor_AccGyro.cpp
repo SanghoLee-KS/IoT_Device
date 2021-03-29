@@ -1,9 +1,8 @@
 #include "Arduino.h"
-#include "Sensor.h"
+#include "Sensor_AccGyro.h"
 #include <Arduino_LSM6DS3.h>
 
 float AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
-
 
 float dt; //시간 단위
 float accel_angle_x, accel_angle_y, accel_angle_z;
@@ -12,12 +11,11 @@ float filtered_angle_x, filtered_angle_y, filtered_angle_z;
 float baseAcX, baseAcY, baseAcZ;
 float baseGyX, baseGyY, baseGyZ;
 float gyro_x, gyro_y, gyro_z; //각속도 저장 전역변수 //각속도 : 단위시간당 회전한 각도
-bool isRightDoor;
 
 unsigned long t_now;
 unsigned long t_prev;
 
-void SensorInit() {
+void sensor_AccGyro_Init() {
   if (!IMU.begin()) {   //가속도 자이로 센서 통신 여부 확인
     Serial.println("Failed to initialize IMU!");
 
@@ -43,67 +41,8 @@ void SensorInit() {
   calibAccelGyro();
   //시간 간격에 대한 초기화
   initDT();
-  
 }
 
-void CheckDoorPosition() {
-  for(int i=0; i<2; i++) {
-    //가속도, 자이로 센서 값 읽기
-    readAccelGyro();
-    //시간 간격 계산
-    calcDT();
-    //가속도 센서 처리 루틴
-    calcAccelYPR();
-    //자이로 센서 처리 루틴
-    calcGyroYPR(); 
-    calcFilteredYPR();
-  }
-  
-}
-
-float ReadSensor() {
-  for(int i=0; i<2; i++) {
-    //가속도, 자이로 센서 값 읽기
-    readAccelGyro();
-    //시간 간격 계산
-    calcDT();
-    //가속도 센서 처리 루틴
-    calcAccelYPR();
-    //자이로 센서 처리 루틴
-    calcGyroYPR(); 
-    calcFilteredYPR();
-  }
-  SendDataToSerial();
-  return filtered_angle_z;
-}  
-
-
-void readAccelGyro() {
-  if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(AcX, AcY, AcZ);
-  } else Serial.println("ERROR ACC");
- /*
-    Serial.print(AcX);
-    Serial.print('\t');
-    Serial.print(AcY);
-    Serial.print('\t');
-    Serial.println(AcZ);
-    */
-  delay(100);
-  if (IMU.gyroscopeAvailable()) {
-    IMU.readGyroscope(GyX, GyY, GyZ);
-  }else Serial.println("ERROR GYR");
-  
-  /*
-  Serial.print(GyX);
-    Serial.print('\t');
-    Serial.print(GyY);
-    Serial.print('\t');
-    Serial.println(GyZ);
-    */
-}
-
-//센서 들의 기본값들의 평균을 내는 루틴 (센서 보정 루틴)
 void calibAccelGyro() {
   float sumAcX = 0, sumAcY = 0, sumAcZ = 0;
   float sumGyX = 0, sumGyY = 0, sumGyZ = 0;
@@ -127,42 +66,46 @@ void calibAccelGyro() {
   baseGyX = sumGyX / 10;
   baseGyY = sumGyY / 10;
   baseGyZ = sumGyZ / 10;
-  /*
-  Serial.print("ACC : ");
-  Serial.print(baseAcX); Serial.print("\t");
-  Serial.print(baseAcY); Serial.print("\t");
-  Serial.print(baseAcZ); Serial.println("\t");
-  Serial.print("GYR : ");
-  Serial.print(baseGyX); Serial.print("\t");
-  Serial.print(baseGyY); Serial.print("\t");
-  Serial.print(baseGyZ); Serial.println("\t");
-  */
+
 }
 
-void SendDataToSerial()
-{
-  /*
-  Serial.print(F("#FIL"));
-  Serial.print(filtered_angle_x, 2);
-  Serial.print(F(","));
-  Serial.print(filtered_angle_y, 2);
-  Serial.print(F(","));
-  Serial.print(filtered_angle_z, 2);
-  Serial.println(F(""));
-  delay(5);
-  */
-}
+void readAccelGyro() {
+  if (IMU.accelerationAvailable()) {
+    IMU.readAcceleration(AcX, AcY, AcZ);
+  } else Serial.println("ERROR ACC");
 
+  delay(100);
+  if (IMU.gyroscopeAvailable()) {
+    IMU.readGyroscope(GyX, GyY, GyZ);
+  }else Serial.println("ERROR GYR");
+
+}
 
 void initDT() {
   t_prev = millis();
 }
+
+float readSensor_AccGyro() {
+  for(int i=0; i<2; i++) {
+    //가속도, 자이로 센서 값 읽기
+    readAccelGyro();
+    //시간 간격 계산
+    calcDT();
+    //가속도 센서 처리 루틴
+    calcAccelYPR();
+    //자이로 센서 처리 루틴
+    calcGyroYPR(); 
+    calcFilteredYPR();
+  }
+  return filtered_angle_z;
+}  
 
 void calcDT() {
   t_now = millis();
   dt = (t_now - t_prev) / 1000.0;
   t_prev = t_now;
 }
+
 
 //가속도 센서 처리 루틴
 void calcAccelYPR() {
@@ -185,7 +128,6 @@ void calcAccelYPR() {
 
   accel_angle_z = 0;
 }
-
 
 void calcGyroYPR(){
   const float GYROXYZ_TO_DEGREES_PER_SED = 131;
